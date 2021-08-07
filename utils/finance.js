@@ -23,8 +23,8 @@ function toDateTime(time) {
 }
 
 async function getYahooData({ ticker, lastDate, firstDate }) {
-    let dirPath = path.join(__dirname, '..', 'yahoo')
-    let cachePath = path.join(__dirname, '..', 'yahoo', `${ticker}.json`)
+    let dirPath = path.join(__dirname, '..', 'cache', 'yahoo')
+    let cachePath = path.join(__dirname, '..', 'cache', 'yahoo', `${ticker}.json`)
     let fn = () => {
         return yahoo.historical({
             symbol: ticker,
@@ -37,8 +37,8 @@ async function getYahooData({ ticker, lastDate, firstDate }) {
 }
 
 async function getCryptoCompareReturns(token) {
-    let dirPath = path.join(__dirname, '..', 'cryptocompare')
-    let cachePath = path.join(__dirname, '..', 'cryptocompare', `${token}.json`)
+    let dirPath = path.join(__dirname, '..', 'cache', 'cryptocompare')
+    let cachePath = path.join(__dirname, '..', 'cache', 'cryptocompare', `${token}.json`)
 
     const fn = async () => {
         const data = await fetch(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${token}&tsym=USD&limit=720`)

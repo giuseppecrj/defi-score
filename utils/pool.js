@@ -8,6 +8,7 @@ const path = require('path')
 const cache = new Map()
 
 async function currentUSDValue(token) {
+    // todo
     if (token[0] === 'i' && token[1] === 'w') token = token.substring(0, 2)
     else token = token
 
