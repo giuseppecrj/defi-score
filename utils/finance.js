@@ -3,6 +3,7 @@ const date = require('date-fns')
 const yahoo = require('yahoo-finance')
 const cache = require('./cache')
 const path = require('path')
+const percentile = require('percentile')
 
 function getPercentageChange(oldNumber, newNumber) {
     var decreaseValue = oldNumber - newNumber;
@@ -36,6 +37,20 @@ async function getYahooData({ ticker, lastDate, firstDate }) {
     return await cache({ dirPath, cachePath, fn })
 }
 
+function parseReturns(tickerClose, token) {
+    return tickerClose.map((value, index) => {
+        if (index === 0) {
+            value[`daily_returns`] = 0.0
+            return value
+        }
+
+        const currValue = value['close']
+        const prevValue = tickerClose[index - 1]['close']
+        value[`daily_returns`] = getPercentageChange(currValue, prevValue)
+        return value
+    })
+}
+
 async function getCryptoCompareReturns(token) {
     let dirPath = path.join(__dirname, '..', 'cache', 'cryptocompare')
     let cachePath = path.join(__dirname, '..', 'cache', 'cryptocompare', `${token}.json`)
@@ -49,7 +64,7 @@ async function getCryptoCompareReturns(token) {
             return pick(value, ['close', 'date'])
         })
 
-        return df
+        return parseReturns(df, token)
     }
 
     return await cache({ dirPath, cachePath, fn })
@@ -75,38 +90,65 @@ async function getReturns(tokens) {
 
     const lastDate = date.format(Date.now(), 'yyyy-MM-dd')
     const firstDate = date.format(date.addDays(Date.now(), -520), 'yyyy-MM-dd')
-
-    await Promise.all(tokens.map(async ({ token }) => {
+    const dfList = await Promise.all(tokens.map(async ({ token }) => {
         if (token === 'wbtc') token = token.substring(1)
         token = token.toUpperCase()
 
         if (stables.includes(token)) {
             if (token === 'SAI') token = 'DAI'
             const tickerReturns = await getCryptoCompareReturns(token)
+            return tickerReturns
         } else {
             const ticker = `${token}-USD`
             const tickerClose = await getYahooData({ ticker, lastDate, firstDate })
-            const tickerReturns = tickerClose.map((value, index) => {
-                if (index === 0) {
-                    value[`daily_returns_${token}`] = 0.0
-                    return value
-                }
-
-                const currValue = value['close']
-                const prevValue = tickerClose[index - 1]['close']
-                value[`daily_returns_${token}`] = getPercentageChange(prevValue, currValue)
-                return value
-            })
-
-            console.log(tickerReturns)
+            const tickerReturns = parseReturns(tickerClose.reverse(), token)
+            return tickerReturns
         }
     }))
+
+    return dfList
+        .map((values) => {
+            return values
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map((value) => {
+                    return value.daily_returns
+                })
+        })
+}
+
+function dot(returns, weights, lookBack) {
+    returns = returns.map((v) => v.slice(0, lookBack))
+    return returns.map((vals) => {
+        let s = 0
+        weights.map((w) => {
+            vals.map((v) => {
+                s += w * v
+            })
+        })
+        return s
+    })
+}
+
+function valueAtRisk(returns, weights, alpha, lookBack) {
+    const portfolioReturns = dot(returns, weights, lookBack)
+    const _p = (100 * (1 - alpha))
+    return percentile(_p, portfolioReturns)
+}
+
+const average = (array) => array.reduce((a, b) => a + b) / array.length;
+
+
+function cvar(returns, weights, alpha, lookBack) {
+    let _var = valueAtRisk(returns, weights, alpha, lookBack)
+    let _portfolioReturns = dot(returns, weights, lookBack)
+    return average(_portfolioReturns)
 }
 
 
 async function fetchCvar(balances) {
     const weights = getWeights(balances)
     const returns = await getReturns(balances)
+    const portfolioCvar = cvar(returns, weights, 0.99, 10)
 
 }
 
