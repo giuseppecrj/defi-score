@@ -1,0 +1,14 @@
+{
+    "liquidity": 217546.90234277287,
+    "liquidityBaseToken": 208978.77266356666,
+    "collateral": 217546.90234277287,
+    "collateralBaseToken": 208978.77266356666,
+    "totalSupply": 217984.76376455376,
+    "totalSupplyBaseToken": 209399.38882281823,
+    "totalBorrowed": 437.86142178088835,
+    "totalBorrowedBaseToken": 420.61615925157383,
+    "utilizationRate": 0.0020086790205843205,
+    "usdPrice": 1.041,
+    "protocol": "compound",
+    "token": "sai"
+}

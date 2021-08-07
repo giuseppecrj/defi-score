@@ -1,0 +1,14 @@
+{
+    "liquidity": 4089228092.800128,
+    "liquidityBaseToken": 1400770.772419176,
+    "collateral": 4089228092.800128,
+    "collateralBaseToken": 1400770.772419176,
+    "totalSupply": 4411600601.778055,
+    "totalSupplyBaseToken": 1511199.9238775636,
+    "totalBorrowed": 322372508.97792685,
+    "totalBorrowedBaseToken": 110429.1514583875,
+    "utilizationRate": 0.07307382015679244,
+    "usdPrice": 2919.27,
+    "protocol": "compound",
+    "token": "eth"
+}
